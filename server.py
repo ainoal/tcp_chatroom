@@ -8,9 +8,9 @@ import threading
 clients = []
 nicknames = []
 
-# Define host and port
 host = "127.0.0.1"
 port = 8000
+print("Listening on port 8000")
 
 # Start server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -42,11 +42,12 @@ def receive():
         nicknames.append(nickname)
 
         # Send info about the new chatter to other users
-        public_message(nickname.encode("ascii"), "joined the chat!")
-        client.send("Connected to server.".encode("ascii"))
+        msg = nickname + " joined the chat!"
+        public_message(msg.encode("ascii"))
+        client.send("Connected to server.\n".encode("ascii"))
 
         # Create a thread for the client
         thread = threading.Thread(target=handle, args=(client,))
-        thread.start
+        thread.start()
 
 receive()
