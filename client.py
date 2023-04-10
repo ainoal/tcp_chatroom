@@ -1,7 +1,15 @@
+######################################################################
+# Client program for Distributed Systems course
+# Assignment 3
+# client.py
+# Author: ainoal
+######################################################################
+
 import socket
 import threading
 
 nickname = input(" Choose a nickname: ")
+channel = input("Write the name of the channel you want to join: ")
 
 # Connect to server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -14,6 +22,8 @@ def receive():
             msg = client.recv(1024).decode("ascii")
             if (msg == "nickname"):
                 client.send((nickname).encode("ascii"))
+            elif (msg == "channel"):
+                client.send((channel).encode("ascii"))
             else:
                 print(msg)
         except:
@@ -32,3 +42,6 @@ thread_receive = threading.Thread(target=receive)
 thread_receive.start()
 thread_write = threading.Thread(target=write_msg)
 thread_write.start()
+
+######################################################################
+# eof
