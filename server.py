@@ -41,7 +41,9 @@ def handle(client):
             elif "//channel" in msg:
                 channel = msg.replace((nicknames[idx] + ": //channel "), "")
                 channels[idx] = channel
-                print(channels[idx])
+                public_message(("{} joined the channel!".format(nicknames[idx])).encode("ascii"), channel)
+            elif "//active" in msg:
+                active(client)
             else:
                 public_message(msg.encode("ascii"), channel)
         except:
@@ -103,6 +105,21 @@ def remove(client):
         public_message(("{} left the chat.\n".format(nickname)).encode("ascii"), channel)
         del nicknames[idx]
         del channels[idx]
+
+# Function to send client the information of active users and channels
+def active(requester):
+    string = "Other active users:\n"
+    for client in clients:
+        idx = clients.index(client)
+        if client != requester:
+            string = string + nicknames[idx] + "\n"
+    string = string + "Active channels:\n"
+    allchannels = []
+    for channel in channels:
+        if channel not in allchannels:
+            allchannels.append(channel)
+            string = string + channel + "\n"
+    requester.send(string.encode("ascii"))
 
 receive()
 
