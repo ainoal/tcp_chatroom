@@ -9,8 +9,11 @@ The system uses multithreading. Server creates a new thread for each client to h
 Clients have several options for messaging. If they just write text without any of the following commands, the client program will send the message to the server, which will again send it to every client in the same channel as the sender. Specific commands that a user can include in their message:
 
 //quit                          Disconnect
+
 //pm [another user’s name]      Private message
+
 //channel [channel name]        Change to another chat channel
+
 //active                        Get a list of other active users and active channels
 
 If the message that the server receives from a client includes any of these commands, it will be processed accordingly.
