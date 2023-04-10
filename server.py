@@ -38,6 +38,10 @@ def handle(client):
                 break
             elif "//pm" in msg:
                 private_message(msg, client)
+            elif "//channel" in msg:
+                channel = msg.replace((nicknames[idx] + ": //channel "), "")
+                channels[idx] = channel
+                print(channels[idx])
             else:
                 public_message(msg.encode("ascii"), channel)
         except:
