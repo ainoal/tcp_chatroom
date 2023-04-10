@@ -7,6 +7,7 @@
 
 import socket
 import threading
+import sys
 
 nickname = input(" Choose a nickname: ")
 channel = input("Write the name of the channel you want to join: ")
@@ -15,7 +16,7 @@ channel = input("Write the name of the channel you want to join: ")
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(("127.0.0.1", 8000))
 
-# Function to listen to server and choose a nickname
+# Listen to server
 def receive():
     while True:
         try:
@@ -24,14 +25,17 @@ def receive():
                 client.send((nickname).encode("ascii"))
             elif (msg == "channel"):
                 client.send((channel).encode("ascii"))
+            elif (msg == "exit"):
+                print("Nickname already taken, please try again")
+                sys.exit(0)
             else:
                 print(msg)
         except:
             print("Error. Closing connection.\n")
             client.close()
-            break
+            sys.exit(0)
 
-# Function to send massages to server
+# Send messages
 def write_msg():
     while True:
         msg = "{}: {}".format(nickname, input(""))

@@ -26,7 +26,35 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
 
-# Function to handle messages from clients (and remove clients if needed)
+# Receiving/listening function
+def receive():
+    while True:
+        client, address = server.accept()
+        print(address, "connected")
+
+        # Ask for client's nickname and add client to list
+        client.send("nickname".encode("ascii"))
+        nickname = client.recv(1024).decode("ascii")
+        if nickname in nicknames:
+            client.send(("Nickname already taken, please try again.").encode("ascii"))
+            client.send("exit".encode("ascii"))
+        else:
+            client.send("channel".encode("ascii"))
+            channel = client.recv(1024).decode("ascii")
+            clients.append(client)
+            nicknames.append(nickname)
+            channels.append(channel)
+
+            # Send info about the new chatter to other users
+            client.send("Connected to server.\n".encode("ascii"))
+            msg = nickname + " joined the chat!\n"
+            public_message(msg.encode("ascii"), channel)
+
+            # Create a thread for the client
+            thread = threading.Thread(target=handle, args=(client,))
+            thread.start()
+
+# Handle messages from clients (and remove clients if needed)
 def handle(client):
     idx = clients.index(client)
     channel = channels[idx]
@@ -43,45 +71,21 @@ def handle(client):
                 channels[idx] = channel
                 public_message(("{} joined the channel!".format(nicknames[idx])).encode("ascii"), channel)
             elif "//active" in msg:
-                active(client)
+                get_active_users_and_channels(client)
             else:
                 public_message(msg.encode("ascii"), channel)
         except:
             remove(client)
             break
 
-# Receiving/listening function
-def receive():
-    while True:
-        client, address = server.accept()
-        print(address, "connected")
-
-        # Ask for client's nickname and add client to list
-        client.send("nickname".encode("ascii"))
-        nickname = client.recv(1024).decode("ascii")
-        client.send("channel".encode("ascii"))
-        channel = client.recv(1024).decode("ascii")
-        clients.append(client)
-        nicknames.append(nickname)
-        channels.append(channel)
-
-        # Send info about the new chatter to other users
-        client.send("Connected to server.\n".encode("ascii"))
-        msg = nickname + " joined the chat!\n"
-        public_message(msg.encode("ascii"), channel)
-
-        # Create a thread for the client
-        thread = threading.Thread(target=handle, args=(client,))
-        thread.start()
-
-# Function to send message to all connected clients
+# Send a message to all connected clients
 def public_message(msg, channel):
     for client in clients:
         idx = clients.index(client)
         if channels[idx] == channel:
             client.send(msg)
 
-# Send message to one client
+# Send a private message to one client
 def private_message(msg, sender):
     message_sent = False
     for client in clients:
@@ -91,9 +95,9 @@ def private_message(msg, sender):
             client.send(msg.encode("ascii"))
             message_sent = True
     if message_sent == False:
-        sender.send("No user with the specified nickname :(".encode("ascii"))
+        sender.send("No active user with the specified nickname :(".encode("ascii"))
 
-# Function to remove a client
+# Remove a client
 def remove(client):
     if client in clients:
         idx = clients.index(client)
@@ -105,9 +109,10 @@ def remove(client):
         public_message(("{} left the chat.\n".format(nickname)).encode("ascii"), channel)
         del nicknames[idx]
         del channels[idx]
+        client.send("exit")
 
-# Function to send client the information of active users and channels
-def active(requester):
+# Send client the information of active users and channels
+def get_active_users_and_channels(requester):
     string = "Other active users:\n"
     for client in clients:
         idx = clients.index(client)
